@@ -1,10 +1,7 @@
 from functools import lru_cache
 import itertools
 from math import floor
-
-# Types
-perm = tuple[int]
-inv = tuple[int]
+from .types import *
 
 def cong_repr(x: int, n: int) -> int:
   """Returns the congruence representative of x in the range [1, n]"""
