@@ -1,5 +1,6 @@
 from functools import lru_cache
 import itertools
+from math import floor
 
 # Types
 perm = tuple[int]
@@ -50,3 +51,17 @@ def inversions(w: perm, k: int) -> set[inv]:
         for r in inv_helper(idxs, vals):
             ret.add(tuple(r))
     return ret
+
+# As defined in Bjorner and Brenti's "Affine Permutations of Type A" on page 20.
+def inversion_multigraph(w: perm) -> tuple[tuple[int]]:
+    n = len(w)
+    G = [[0] * n for _ in range(n)]
+    for i in range(n):
+        for j in range(i+1, n):
+            weight = abs(floor((w[j]-w[i])/float(n)))
+            if w[j] > w[i]:
+                G[i][j] = weight
+            else:
+                G[i][j] = -weight
+            G[j][i] = -G[i][j]
+    return tuple(tuple(x) for x in G)

@@ -25,3 +25,12 @@ def test_inversions():
     assert inversions((-3, -2, 8, 7), 2) == {(1,3), (1,4), (1,7), (1,8), (2,3), (2,4), (2,7), (2,8), (3,4)}
     assert inversions((-3, -2, 8, 7), 3) == {(1,3,4), (1,7,8), (2,3,4), (2,7,8)}
     assert inversions((-3, -2, 8, 7), 4) == set()
+
+def test_inversion_multigraph():
+    assert(inversion_multigraph((-11, -2, 15, 11, 2))) == (
+        (0,1,5,4,2),
+        (-1,0,3,2,0),
+        (-5,-3,0,-1,-3),
+        (-4,-2,1,0,-2),
+        (-2,0,3,2,0),
+    )
