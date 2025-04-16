@@ -57,11 +57,14 @@ def experiment_difference_values():
 
     return difference_values
 
+# Checked: All 4x4 matrices with weights of absolute value <= 3.
+# Checked: ALl 5x5 matrices with weights of absolute value <= 3.
+
 def experiment_all_triangle_equality_graphs_exist():
-    n = 4
+    n = 6
     expected = set(multigraphs_satisfying_triangle_inequality(n,2))
     actual = set()
-    for l in tqdm(range(11)):
+    for l in tqdm(range(25)):
         for w in permutations(n, l):
             actual.add(inversion_multigraph(w))
     return actual, expected

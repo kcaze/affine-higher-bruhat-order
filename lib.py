@@ -61,6 +61,22 @@ def inv_contraction(w: Perm, k: int) -> set[Inv]:
     n = len(w)
     return set([X for X in inv(w,k) if X[-1]%n==0])
 
+def contraction(x: Inv, j: int) -> Inv:
+    x = [(i if i < j else i-1) for i in x if i != j]
+    return tuple(x)
+
+def deletion(x: Inv, j: int) -> Inv:
+    x = [(i if i < j else i-1) for i in x if i != j]
+    return tuple(x)
+
+def truncation(x: Inv) -> Inv:
+    n = len(x)
+    m = x.index(n)
+    y = x[m:]
+    sy = sorted(y)
+    return tuple([sy.index(i)+1 for i in y])
+
+
 def normalize(x: Inv, n: int) -> Inv:
     shift = repr(x[0],n) - x[0]
     return tuple(i+shift for i in x)
