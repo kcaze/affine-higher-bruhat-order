@@ -116,7 +116,6 @@ def G(w: Perm, k: int, R: frozenset[Inv]) -> Poset[Inv]:
         for i in range(len(P)-1):
             if P[i] in V:
                 break
-        print(i, k, P, P[i], P[i+1])
         if (k-i) % 2 == 1:
             ret[P[i]]['outs'].add(P[i+1])
             ret[P[i+1]]['ins'].add(P[i])
@@ -228,7 +227,7 @@ def permanent_poset(w: Perm, k: int) -> Poset[Inv]:
             else:
                 X = common_packet(i,j,n)
                 if X and X not in J:
-                    P = packet(X,n)[::-1]
+                    P = packet(X)[::-1]
                     if i not in P:
                         continue
                     i_idx = P.index(i)
@@ -251,7 +250,7 @@ def packets_containing(w: Perm, x: Inv) -> list[Inv]:
     k = len(x)
     ret: list[Inv] = []
     for y in inv(w, k+1):
-        if x in packet(y, n):
+        if x in packet(y):
             ret.append(y)
     return ret
 
@@ -262,7 +261,7 @@ def is_consistent_on(w: Perm, k: int, rev: frozenset[Inv], xs: list[Inv]) -> boo
 
     n = len(w)
     for x in xs:
-        p = packet(x,n)
+        p = packet(x)
         # Rev is either prefix or suffix of p.
         flip = []
         for i in range(k):
@@ -304,7 +303,7 @@ def admissible_poset(w: Perm, k: int, R: frozenset[Inv]) -> Poset[Inv]:
         if x not in ret:
             ret[x] = {"ins": set(), "outs": set()}
     for x in inv(w,k+1):
-        P = packet(x, n)
+        P = packet(x)
         if x in R:
             P = P[::-1]
         for i in range(k):
