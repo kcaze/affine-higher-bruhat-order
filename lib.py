@@ -56,6 +56,16 @@ def inv(w: Perm, k: int) -> set[Inv]:
             ret.add(tuple(r))
     return ret
 
+def quasi_inv(w: Perm, k: int) -> set[Inv]:
+    n = len(w)
+    inv_k_1 = inv(w, k-1)
+    ret = set()
+    for X in itertools.combinations(range(1, n+1), k):
+        P_X = set(packet(X))
+        if len(P_X & inv_k_1) == 2 and k-1 > 2:
+            ret.add(X)
+    return ret
+
 @lru_cache
 def inv_contraction(w: Perm, k: int) -> set[Inv]:
     n = len(w)
@@ -69,23 +79,62 @@ def deletion(x: Inv, j: int) -> Inv:
     x = [(i if i < j else i-1) for i in x if i != j]
     return tuple(x)
 
-def truncation(x: Inv) -> Inv:
-    n = len(x)
-    m = x.index(n)
-    y = x[m:]
+def truncation(w: Perm) -> Perm:
+    n = len(w)
+    m = w.index(n)+1
+    y = w[m:]
     sy = sorted(y)
     return tuple([sy.index(i)+1 for i in y])
+
+def truncation_inv(w: Perm, x: Inv) -> Inv:
+    n = len(w)
+    assert(x[-1] == n)
+    m = w.index(n)+1
+    tw = truncation(w)
+    return tuple([tw[w.index(i) - m] for i in x[:-1]])
+
+def F(w: Perm, j:int) -> Perm:
+    return tuple([i if i < j else i-1 for i in w if i != j])
+
+def G(w: Perm, k: int, R: frozenset[Inv]) -> Poset[Inv]:
+    V = inv(w, k-1)
+    ret: Poset[Inv] = {}
+    for x in V:
+        ret[x] = {'ins':set(), 'outs':set()}
+    for X in inv(w, k):
+        P = packet(X)
+        lex = X not in R
+        for i in range(len(P)-1):
+            if not lex:
+                ret[P[i]]['outs'].add(P[i+1])
+                ret[P[i+1]]['ins'].add(P[i])
+            else:
+                ret[P[i]]['ins'].add(P[i+1])
+                ret[P[i+1]]['outs'].add(P[i])
+    for X in quasi_inv(w, k):
+        P = packet(X)
+        for i in range(len(P)-1):
+            if P[i] in V:
+                break
+        print(i, k, P, P[i], P[i+1])
+        if (k-i) % 2 == 1:
+            ret[P[i]]['outs'].add(P[i+1])
+            ret[P[i+1]]['ins'].add(P[i])
+        else:
+            ret[P[i]]['ins'].add(P[i+1])
+            ret[P[i+1]]['outs'].add(P[i])
+    return ret
 
 
 def normalize(x: Inv, n: int) -> Inv:
     shift = repr(x[0],n) - x[0]
     return tuple(i+shift for i in x)
 
-def packet(x: Inv, n: int) -> list[Inv]:
-    """Returns the congruence-class normalized packet P(x)."""
+def packet(x: Inv) -> list[Inv]:
+    """Returns the packet of x in antilex order."""
     ret: list[Inv] = []
     for i in range(len(x)):
-        ret.append(normalize(x[:i] + x[(i+1):],n))
+        ret.append(tuple(x[:i] + x[(i+1):]))
     return ret
 
 def affine_shift(x: Inv, n: int) -> tuple[int]:
