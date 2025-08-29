@@ -61,7 +61,7 @@ def quasi_inv(w: Perm, k: int) -> set[Inv]:
     inv_k_1 = inv(w, k-1)
     ret = set()
     for X in itertools.combinations(range(1, n+1), k):
-        P_X = set(packet(X))
+        P_X = set(packet(X,n))
         if len(P_X & inv_k_1) == 2 and k-1 > 2:
             ret.add(X)
     return ret
@@ -99,10 +99,11 @@ def F(w: Perm, j:int) -> Perm:
 def G(w: Perm, k: int, R: frozenset[Inv]) -> Poset[Inv]:
     V = inv(w, k-1)
     ret: Poset[Inv] = {}
+    n = len(w)
     for x in V:
         ret[x] = {'ins':set(), 'outs':set()}
     for X in inv(w, k):
-        P = packet(X)
+        P = packet(X,n)
         lex = X not in R
         for i in range(len(P)-1):
             if not lex:
@@ -112,7 +113,7 @@ def G(w: Perm, k: int, R: frozenset[Inv]) -> Poset[Inv]:
                 ret[P[i]]['ins'].add(P[i+1])
                 ret[P[i+1]]['outs'].add(P[i])
     for X in quasi_inv(w, k):
-        P = packet(X)
+        P = packet(X,n)
         for i in range(len(P)-1):
             if P[i] in V:
                 break
@@ -129,11 +130,11 @@ def normalize(x: Inv, n: int) -> Inv:
     shift = repr(x[0],n) - x[0]
     return tuple(i+shift for i in x)
 
-def packet(x: Inv) -> list[Inv]:
+def packet(x: Inv, n: int) -> list[Inv]:
     """Returns the packet of x in antilex order."""
     ret: list[Inv] = []
     for i in range(len(x)):
-        ret.append(tuple(x[:i] + x[(i+1):]))
+        ret.append(normalize(tuple(x[:i] + x[(i+1):]), n))
     return ret
 
 def affine_shift(x: Inv, n: int) -> tuple[int]:
@@ -227,7 +228,7 @@ def permanent_poset(w: Perm, k: int) -> Poset[Inv]:
             else:
                 X = common_packet(i,j,n)
                 if X and X not in J:
-                    P = packet(X)[::-1]
+                    P = packet(X, n)[::-1]
                     if i not in P:
                         continue
                     i_idx = P.index(i)
@@ -250,7 +251,7 @@ def packets_containing(w: Perm, x: Inv) -> list[Inv]:
     k = len(x)
     ret: list[Inv] = []
     for y in inv(w, k+1):
-        if x in packet(y):
+        if x in packet(y,n):
             ret.append(y)
     return ret
 
@@ -261,7 +262,7 @@ def is_consistent_on(w: Perm, k: int, rev: frozenset[Inv], xs: list[Inv]) -> boo
 
     n = len(w)
     for x in xs:
-        p = packet(x)
+        p = packet(x,n)
         # Rev is either prefix or suffix of p.
         flip = []
         for i in range(k):
@@ -303,7 +304,7 @@ def admissible_poset(w: Perm, k: int, R: frozenset[Inv]) -> Poset[Inv]:
         if x not in ret:
             ret[x] = {"ins": set(), "outs": set()}
     for x in inv(w,k+1):
-        P = packet(x)
+        P = packet(x,n)
         if x in R:
             P = P[::-1]
         for i in range(k):
@@ -639,3 +640,16 @@ def generalized_truncation(w: Perm) -> Perm:
     to_delete.add(m)
 
     return delete_congruence_classes(w, to_delete)
+
+def E(a: list, i:int) -> list:
+    i -= 1
+    n = len(a)
+    S = set([repr(a[j],n) for j in range(i+1,n)])
+    k = min([r for r in range(1, n) if repr(r+a[i],n) not in S and (i == n-1 or r+a[i] < a[i+1])])
+    for j in range(i):
+        if repr(a[j],n) == repr(a[i]+k,n):
+            break
+    ret = a[::]
+    ret[j] -= k
+    ret[i] += k
+    return ret
