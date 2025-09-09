@@ -59,11 +59,15 @@ def inv(w: Perm, k: int) -> set[Inv]:
 def quasi_inv(w: Perm, k: int) -> set[Inv]:
     n = len(w)
     inv_k_1 = inv(w, k-1)
+    inv_k = inv(w, k)
     ret = set()
-    for X in itertools.combinations(range(1, n+1), k):
-        P_X = set(packet(X,n))
-        if len(P_X & inv_k_1) == 2 and k-1 > 2:
-            ret.add(X)
+    for X in inv_k_1:
+        for Y in inv_k_1:
+            if X == Y:
+                continue
+            Z = common_packet(X, Y, n)
+            if Z and Z not in inv_k:
+                ret.add(Z)
     return ret
 
 @lru_cache
